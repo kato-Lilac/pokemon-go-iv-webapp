@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0f14">
-<title>Pokémon GO 一括IV解析 v4</title>
+<title>Pokémon GO 一括IV解析 v5</title>
 <link rel="manifest" href="manifest.webmanifest">
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
@@ -18,21 +18,29 @@ button,.filebtn{border:0;border-radius:13px;padding:12px 15px;font-size:15px;fon
 button.secondary{background:#263142;color:#eef2f7}.filebtn input{display:none}button:disabled{opacity:.45}
 .status{font-size:13px;color:#aab4c2;line-height:1.6;margin-top:10px}.ok{color:#9ee4af}.warn{color:#ffd27a}
 .progress{height:8px;background:#232b37;border-radius:99px;overflow:hidden;margin-top:10px}.progress>div{height:100%;background:#e8edf5;width:0%}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 .item{background:#0f141c;border:1px solid #283241;border-radius:15px;overflow:hidden}
 .thumb{width:100%;aspect-ratio:9/16;object-fit:cover;background:#080b10;display:block}
 .info{padding:12px}.name{font-size:17px;font-weight:850;margin-bottom:5px}.meta{font-size:12px;color:#9da8b6;margin-bottom:9px}
 .ivrow,.ranks{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 0}.ranks{grid-template-columns:repeat(4,1fr)}
 .pill{background:#1c2531;border:1px solid #303c4d;border-radius:10px;padding:8px;text-align:center;font-size:12px}.pill b{display:block;font-size:17px;margin-top:2px}
-.nameEdit{width:100%;margin-top:9px}.nameEdit input{width:100%;background:#0b1017;color:#fff;border:1px solid #344052;border-radius:9px;padding:10px;font-size:16px}
+.nameEdit{display:grid;grid-template-columns:1fr auto;gap:7px;margin-top:10px}
+.nameEdit input{width:100%;background:#0b1017;color:#fff;border:1px solid #344052;border-radius:9px;padding:10px;font-size:16px}
+.nameEdit button{padding:9px 11px;font-size:13px}
 .ivEdit{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:7px}
 select{width:100%;background:#0b1017;color:#fff;border:1px solid #344052;border-radius:9px;padding:8px;font-size:14px}
-.small{font-size:11px;color:#8f9aaa}.mega{margin-top:12px;padding-top:10px;border-top:1px solid #303a48}.megaTitle{font-size:13px;font-weight:850;margin:9px 0 5px;color:#d8e1ec}
+.small{font-size:11px;color:#8f9aaa}
+.forms{margin-top:12px;padding-top:10px;border-top:1px solid #303a48}
+.formBlock{margin-top:10px;padding:9px;background:#121923;border:1px solid #2b3645;border-radius:12px}
+.formTitle{font-size:13px;font-weight:850;margin-bottom:6px;color:#dce5f0}
+.formKind{font-size:11px;color:#95a2b2;margin-left:5px}
 table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 8px;border-bottom:1px solid #2b3442;text-align:left;white-space:nowrap}.tablewrap{overflow:auto}
 </style>
-</head><body><main>
-<h1>Pokémon GO 一括IV解析 v4</h1>
-<div class="sub">評価画面をまとめて選択 → IV / CP / 現在HPを解析 → ポケモン種を特定 → 通常・メガシンカのPvP順位を計算します。</div>
+</head>
+<body><main>
+<h1>Pokémon GO 一括IV解析 v5</h1>
+<div class="sub">複数スクショを一括解析し、通常形・進化前・進化先・メガシンカ形態の500 / SL / HL / ML順位を表示します。</div>
+
 <section class="card">
 <div class="controls">
 <label class="filebtn">スクショをまとめて選ぶ<input id="files" type="file" accept="image/*" multiple></label>
@@ -40,10 +48,18 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 8px;b
 <button id="csv" class="secondary" disabled>CSV保存</button>
 <button id="clear" class="secondary">クリア</button>
 </div>
-<div class="status" id="status">画像を選択してください。</div><div class="progress"><div id="bar"></div></div>
+<div class="status" id="status">画像を選択してください。</div>
+<div class="progress"><div id="bar"></div></div>
 </section>
-<section class="card" id="summaryCard" style="display:none"><div class="tablewrap"><table>
+
+<section class="card" id="summaryCard" style="display:none">
+<div class="tablewrap"><table>
 <thead><tr><th>#</th><th>ポケモン</th><th>CP</th><th>現在HP</th><th>IV</th><th>500</th><th>SL</th><th>HL</th><th>ML</th><th>状態</th></tr></thead>
-<tbody id="tbody"></tbody></table></div></section>
+<tbody id="tbody"></tbody>
+</table></div>
+</section>
+
 <section class="grid" id="grid"></section>
-</main><script src="app.js"></script></body></html>
+</main>
+<script src="app-v5.js?v=5"></script>
+</body></html>
