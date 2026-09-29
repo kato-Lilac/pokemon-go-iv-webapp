@@ -4,21 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0f14">
-<title>Pokémon GO 一括IV解析</title>
+<title>Pokémon GO 一括IV解析 v2</title>
 <link rel="manifest" href="manifest.webmanifest">
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root{color-scheme:dark;--bg:#0b0f14;--card:#151b24;--line:#2b3442;--muted:#97a3b3;--text:#f7f8fa}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 main{width:min(1100px,100%);margin:auto;padding:22px 14px 70px}
 h1{font-size:24px;margin:0 0 6px}.sub{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}
 .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 button,.filebtn{border:0;border-radius:13px;padding:12px 15px;font-size:15px;font-weight:800;background:#edf1f6;color:#0b1017;cursor:pointer}
-button.secondary{background:#263142;color:#eef2f7}.filebtn input{display:none}
-button:disabled{opacity:.45;cursor:not-allowed}
-.status{font-size:13px;color:#aab4c2;line-height:1.6;margin-top:10px}
+button.secondary{background:#263142;color:#eef2f7}.filebtn input{display:none}button:disabled{opacity:.45}
+.status{font-size:13px;color:#aab4c2;line-height:1.6;margin-top:10px}.ok{color:#9ee4af}.warn{color:#ffd27a}
 .progress{height:8px;background:#232b37;border-radius:99px;overflow:hidden;margin-top:10px}.progress>div{height:100%;background:#e8edf5;width:0%}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
 .item{background:#0f141c;border:1px solid #283241;border-radius:15px;overflow:hidden}
@@ -27,35 +25,23 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .ivrow,.ranks{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 0}.ranks{grid-template-columns:repeat(4,1fr)}
 .pill{background:#1c2531;border:1px solid #303c4d;border-radius:10px;padding:8px;text-align:center;font-size:12px}.pill b{display:block;font-size:17px;margin-top:2px}
 select,input[type=text]{width:100%;background:#0b1017;color:#fff;border:1px solid #344052;border-radius:9px;padding:7px;font-size:14px}
-.editrow{display:grid;grid-template-columns:1fr 64px 64px 64px;gap:6px;margin-top:8px}.small{font-size:11px;color:#8f9aaa}.ok{color:#9ee4af}.warn{color:#ffd27a}
+.editrow{display:grid;grid-template-columns:1fr 64px 64px 64px;gap:6px;margin-top:8px}.small{font-size:11px;color:#8f9aaa}
 table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 8px;border-bottom:1px solid #2b3442;text-align:left;white-space:nowrap}.tablewrap{overflow:auto}
-#gl{position:fixed;inset:0;width:100%;height:100%;z-index:-1;opacity:.08}
 </style>
-</head>
-<body>
-<canvas id="gl"></canvas>
-<main>
-<h1>Pokémon GO 一括IV解析</h1>
-<div class="sub">評価画面のスクリーンショットをまとめて選択し、名前・CP・個体値を解析してPvP順位を一覧化します。</div>
-
+</head><body><main>
+<h1>Pokémon GO 一括IV解析 v2</h1>
+<div class="sub">評価画面をまとめて選択 → IVバー・CP・現在HPを解析 → ポケモン種を逆算 → 500 / SL / HL / ML順位を計算します。</div>
 <section class="card">
-  <div class="controls">
-    <label class="filebtn">スクショをまとめて選ぶ<input id="files" type="file" accept="image/*" multiple></label>
-    <button id="analyze" disabled>全部解析</button>
-    <button id="csv" class="secondary" disabled>CSV保存</button>
-    <button id="clear" class="secondary">クリア</button>
-  </div>
-  <div class="status" id="status">画像を選択してください。</div>
-  <div class="progress"><div id="bar"></div></div>
+<div class="controls">
+<label class="filebtn">スクショをまとめて選ぶ<input id="files" type="file" accept="image/*" multiple></label>
+<button id="analyze" disabled>全部解析</button>
+<button id="csv" class="secondary" disabled>CSV保存</button>
+<button id="clear" class="secondary">クリア</button>
+</div>
+<div class="status" id="status">画像を選択してください。</div><div class="progress"><div id="bar"></div></div>
 </section>
-
-<section class="card" id="summaryCard" style="display:none">
-<div class="tablewrap"><table>
-<thead><tr><th>#</th><th>ポケモン</th><th>CP</th><th>IV</th><th>500</th><th>SL</th><th>HL</th><th>ML</th><th>状態</th></tr></thead>
-<tbody id="tbody"></tbody>
-</table></div>
-</section>
+<section class="card" id="summaryCard" style="display:none"><div class="tablewrap"><table>
+<thead><tr><th>#</th><th>ポケモン</th><th>CP</th><th>現在HP</th><th>IV</th><th>500</th><th>SL</th><th>HL</th><th>ML</th><th>状態</th></tr></thead>
+<tbody id="tbody"></tbody></table></div></section>
 <section class="grid" id="grid"></section>
-</main>
-<script src="app.js"></script>
-</body></html>
+</main><script src="app.js"></script></body></html>
