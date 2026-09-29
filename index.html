@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0f14">
-<title>Pokémon GO 一括IV解析 v6.4</title>
+<title>Pokémon GO 一括IV解析 v6.5</title>
 <link rel="manifest" href="manifest.webmanifest">
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
@@ -39,7 +39,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 8px;b
 </style>
 </head>
 <body><main>
-<h1>Pokémon GO 一括IV解析 v6.4</h1>
+<h1>Pokémon GO 一括IV解析 v6.5</h1>
 <div class="sub">進化系統全体を、メガシンカを含めて最終形態から進化前へ順番に表示します。</div>
 
 <section class="card">
@@ -60,9 +60,9 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 8px;b
 <tbody id="tbody"></tbody>
 </table></div>
 </section>
-<canvas id="pipCanvas" width="1280" height="360" style="display:none"></canvas>
+<canvas id="pipCanvas" width="1440" height="810" style="display:none"></canvas>
 <div id="pipPreviewWrap" class="card" style="display:none">
-  <div class="small" style="margin-bottom:8px">PiP用動画（準備完了後、この動画を再生したままPokémon GOへ移動してください）</div>
+  <div class="small" style="margin-bottom:8px">PiP用動画（5匹ずつ表示し、6匹目以降は横へ自動ページ送り。最後まで行くと1匹目へ戻ります）</div>
   <video id="pipVideo" muted playsinline autoplay loop controls
     disablepictureinpicture="false"
     style="width:100%;max-height:220px;background:#070b10;border-radius:12px"></video>
@@ -70,5 +70,5 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 8px;b
 
 <section class="grid" id="grid"></section>
 </main>
-<script src="app-v6-4.js?v=64"></script>
+<script src="app-v6-5.js?v=65"></script>
 </body></html>
