@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0f14">
-<title>Pokémon GO 一括IV解析 v6.1</title>
+<title>Pokémon GO 一括IV解析 v6.3</title>
 <link rel="manifest" href="manifest.webmanifest">
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
@@ -27,7 +27,7 @@ button.secondary{background:#263142;color:#eef2f7}.filebtn input{display:none}bu
 .nameEdit{display:grid;grid-template-columns:1fr auto;gap:7px;margin-top:10px}
 .nameEdit input{width:100%;background:#0b1017;color:#fff;border:1px solid #344052;border-radius:9px;padding:10px;font-size:16px}
 .nameEdit button{padding:9px 11px;font-size:13px}
-.ivEdit{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:7px}
+.ivEdit{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:7px}.cpEdit{display:grid;grid-template-columns:70px 1fr auto;gap:7px;align-items:center;margin-top:7px}.cpEdit input{width:100%;background:#0b1017;color:#fff;border:1px solid #344052;border-radius:9px;padding:9px;font-size:16px}
 select{width:100%;background:#0b1017;color:#fff;border:1px solid #344052;border-radius:9px;padding:8px;font-size:14px}
 .small{font-size:11px;color:#8f9aaa}
 .forms{margin-top:12px;padding-top:10px;border-top:1px solid #303a48}
@@ -39,7 +39,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 8px;b
 </style>
 </head>
 <body><main>
-<h1>Pokémon GO 一括IV解析 v6.1</h1>
+<h1>Pokémon GO 一括IV解析 v6.3</h1>
 <div class="sub">進化系統全体を、メガシンカを含めて最終形態から進化前へ順番に表示します。</div>
 
 <section class="card">
@@ -47,6 +47,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 8px;b
 <label class="filebtn">スクショをまとめて選ぶ<input id="files" type="file" accept="image/*" multiple></label>
 <button id="analyze" disabled>全部解析</button>
 <button id="csv" class="secondary" disabled>CSV保存</button>
+<button id="pip" class="secondary" disabled>集計表をPiP</button>
 <button id="clear" class="secondary">クリア</button>
 </div>
 <div class="status" id="status">画像を選択してください。</div>
@@ -55,12 +56,14 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px 8px;b
 
 <section class="card" id="summaryCard" style="display:none">
 <div class="tablewrap"><table>
-<thead><tr><th>#</th><th>ポケモン</th><th>CP</th><th>現在HP</th><th>IV</th><th>500</th><th>SL</th><th>HL</th><th>ML</th><th>状態</th></tr></thead>
+<thead><tr><th>#</th><th>ポケモン</th><th>CP</th><th>IV</th><th>500</th><th>SL</th><th>HL</th><th>ML</th><th>状態</th></tr></thead>
 <tbody id="tbody"></tbody>
 </table></div>
 </section>
+<canvas id="pipCanvas" width="1280" height="360" style="display:none"></canvas>
+<video id="pipVideo" muted playsinline autoplay style="position:absolute;width:1px;height:1px;opacity:.001"></video>
 
 <section class="grid" id="grid"></section>
 </main>
-<script src="app-v6-1.js?v=61"></script>
+<script src="app-v6-3.js?v=63"></script>
 </body></html>
