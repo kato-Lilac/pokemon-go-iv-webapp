@@ -645,20 +645,20 @@ function rankForSCP(p,a,d,h,cap,it){
       for(let D=minIV;D<16;D++){
         for(let H=minIV;H<16;H++){
           const b=bestUnderSCP(p,A,D,H,cap,50);
-          if(b)arr.push({a:A,d:D,h:H,scp:b.scp,level:b.level,cp:b.cp});
+          if(b)arr.push({a:A,d:D,h:H,scp:b.scp,raw:b.raw,level:b.level,cp:b.cp});
         }
       }
     }
 
-    arr.sort((x,y)=>y.scp-x.scp);
+    // みんポケは表示用SCP（整数）ではなく、丸める前のSCP'相当値で順位を決める。
+    // SCP表示が同じでも内部値が違えば別順位になる。
+    arr.sort((x,y)=>y.raw-x.raw);
 
-    // みんポケ表と同じ competition ranking:
-    // 1,1,3... / 5,5,7... のように同SCPは同順位。
     let prev=null,currentRank=0;
     arr.forEach((x,i)=>{
-      if(prev===null || x.scp!==prev)currentRank=i+1;
+      if(prev===null || Math.abs(x.raw-prev)>1e-9)currentRank=i+1;
       x.rank=currentRank;
-      prev=x.scp;
+      prev=x.raw;
     });
 
     app.rankCache.set(key,arr);
@@ -685,18 +685,18 @@ function rankMLSCP(p,a,d,h,it){
       for(let D=minIV;D<16;D++){
         for(let H=minIV;H<16;H++){
           const s=scpAt(p,A,D,H,cpm);
-          arr.push({a:A,d:D,h:H,scp:s.scp});
+          arr.push({a:A,d:D,h:H,scp:s.scp,raw:s.raw});
         }
       }
     }
 
-    arr.sort((x,y)=>y.scp-x.scp);
+    arr.sort((x,y)=>y.raw-x.raw);
 
     let prev=null,currentRank=0;
     arr.forEach((x,i)=>{
-      if(prev===null || x.scp!==prev)currentRank=i+1;
+      if(prev===null || Math.abs(x.raw-prev)>1e-9)currentRank=i+1;
       x.rank=currentRank;
-      prev=x.scp;
+      prev=x.raw;
     });
 
     app.rankCache.set(key,arr);
