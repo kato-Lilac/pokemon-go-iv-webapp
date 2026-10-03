@@ -431,21 +431,19 @@ function inferSpeciesByStats(cp,hp,a,d,h){
 }
 
 /*
- v6 IV bar detection.
- 実際のユーザー画像 IMG_8783.jpeg で確認:
- - 攻撃バー色付き: x≈84..279
- - バー全体:       x≈84..329
- - 196 / 246 ≈ 0.797 → 12/15
- - 防御・HPは全長 → 15/15
+v7.2 IV bar detection.
+- バーは 3区画 × 5pt を前提に判定
+- 単純に最後のオレンジ位置だけを見ず、各区画の塗り幅を別々に測る
+- 複数行の平均を使って、端末差や補間ノイズに強くする
 */
 function detectIVBarsV5(img){
-  const scale=Math.min(1,1000/img.naturalWidth);
+  const scale=Math.min(1,1100/img.naturalWidth);
   const w=Math.round(img.naturalWidth*scale);
   const h=Math.round(img.naturalHeight*scale);
 
   const c=document.createElement('canvas');
   c.width=w;c.height=h;
-  const ctx=c.getContext('2d');
+  const ctx=c.getContext('2d',{willReadFrequently:true});
   ctx.drawImage(img,0,0,w,h);
 
   const id=ctx.getImageData(0,0,w,h);
@@ -456,18 +454,37 @@ function detectIVBarsV5(img){
     return[D[k],D[k+1],D[k+2]];
   };
 
-  const colored=([r,g,b])=>r>180&&(r-g)>25&&(r-b)>20&&g>50;
-
-  const gray=([r,g,b])=>{
-    const mean=(r+g+b)/3;
-    const range=Math.max(r,g,b)-Math.min(r,g,b);
-    return mean>195&&mean<242&&range<14;
+  const rgbToHsv=(r,g,b)=>{
+    r/=255;g/=255;b/=255;
+    const max=Math.max(r,g,b),min=Math.min(r,g,b);
+    const d=max-min;
+    let h=0;
+    if(d!==0){
+      if(max===r)h=((g-b)/d)%6;
+      else if(max===g)h=(b-r)/d+2;
+      else h=(r-g)/d+4;
+      h*=60;
+      if(h<0)h+=360;
+    }
+    const s=max===0?0:d/max;
+    const v=max;
+    return[h,s,v];
   };
 
-  // 評価UI位置は端末・スクショによって下側へ動くため広く探索
+  const colored=(p)=>{
+    const [h,s,v]=rgbToHsv(p[0],p[1],p[2]);
+    return h>=20&&h<=52&&s>=0.34&&v>=0.52;
+  };
+
+  const gray=(p)=>{
+    const [r,g,b]=p;
+    const mean=(r+g+b)/3;
+    const range=Math.max(r,g,b)-Math.min(r,g,b);
+    return mean>185&&mean<245&&range<18;
+  };
+
   const y0=Math.floor(h*.50);
   const y1=Math.floor(h*.92);
-
   let rows=[];
 
   for(let y=y0;y<y1;y++){
@@ -488,17 +505,13 @@ function detectIVBarsV5(img){
         if(isColor)colorCount++;
       }else if(start!==null){
         gap++;
-
-        // 5/10の白い区切り線やアンチエイリアスを跨ぐ
         if(gap>12){
           const end=last;
           const len=end-start+1;
-
-          if(len>w*.22 && colorCount>w*.055){
+          if(len>w*.22 && colorCount>w*.045){
             const cand={start,end,colorCount};
             if(!best||len>(best.end-best.start+1))best=cand;
           }
-
           start=null;
           gap=0;
           colorCount=0;
@@ -509,8 +522,7 @@ function detectIVBarsV5(img){
     if(start!==null){
       const end=last;
       const len=end-start+1;
-
-      if(len>w*.22 && colorCount>w*.055){
+      if(len>w*.22 && colorCount>w*.045){
         const cand={start,end,colorCount};
         if(!best||len>(best.end-best.start+1))best=cand;
       }
@@ -521,69 +533,100 @@ function detectIVBarsV5(img){
 
   if(!rows.length)return null;
 
-  // 同一バーの複数行をまとめる
   let groups=[];
-
   for(const r of rows){
-    if(!groups.length||r.y-groups[groups.length-1][groups[groups.length-1].length-1].y>3){
-      groups.push([r]);
-    }else{
-      groups[groups.length-1].push(r);
-    }
+    if(!groups.length||r.y-groups[groups.length-1][groups[groups.length-1].length-1].y>3)groups.push([r]);
+    else groups[groups.length-1].push(r);
   }
 
   const reps=groups
     .filter(g=>g.length>=3)
     .map(g=>g.reduce((a,b)=>(b.end-b.start)>(a.end-a.start)?b:a));
 
-  // 開始位置/終了位置がほぼ同じ3本を探す
   let triple=null,bestScore=Infinity;
-
   for(let a=0;a<reps.length;a++){
     for(let b=a+1;b<reps.length;b++){
       for(let c3=b+1;c3<reps.length;c3++){
         const t=[reps[a],reps[b],reps[c3]];
         const starts=t.map(z=>z.start);
         const ends=t.map(z=>z.end);
-
         const sx=Math.max(...starts)-Math.min(...starts);
         const ex=Math.max(...ends)-Math.min(...ends);
         const d1=t[1].y-t[0].y;
         const d2=t[2].y-t[1].y;
-
         if(sx>22||ex>22||d1<20||d2<20)continue;
-
         const score=sx+ex+Math.abs(d1-d2)*.35;
-
-        if(score<bestScore){
-          bestScore=score;
-          triple=t;
-        }
+        if(score<bestScore){bestScore=score;triple=t;}
       }
     }
   }
 
   if(!triple)return null;
-
   triple.sort((a,b)=>a.y-b.y);
 
   const median=a=>[...a].sort((x,y)=>x-y)[1];
   const start=median(triple.map(z=>z.start));
   const end=median(triple.map(z=>z.end));
   const total=end-start+1;
-
   if(total<=0)return null;
 
-  return triple.map(r=>{
-    let lastColor=start-1;
-
-    for(let x=start;x<=end;x++){
-      if(colored(px(x,r.y)))lastColor=x;
+  const analyzeBar=(centerY)=>{
+    const sampleYs=[];
+    for(let dy=-2;dy<=2;dy++){
+      const yy=centerY+dy;
+      if(yy>=0&&yy<h)sampleYs.push(yy);
     }
 
-    const fraction=Math.max(0,Math.min(1,(lastColor-start+1)/total));
-    return Math.max(0,Math.min(15,Math.round(fraction*15)));
-  });
+    const support=[];
+    for(let x=start;x<=end;x++){
+      let n=0;
+      for(const yy of sampleYs){
+        if(colored(px(x,yy)))n++;
+      }
+      support.push(n>=2?1:0);
+    }
+
+    const values=[];
+    for(let seg=0;seg<3;seg++){
+      const segStart=Math.round(seg*total/3);
+      const segEnd=Math.round((seg+1)*total/3)-1;
+      const segLen=Math.max(1,segEnd-segStart+1);
+
+      let filled=0;
+      let run=0;
+      for(let i=segStart;i<=segEnd;i++){
+        if(support[i]){
+          run++;
+        }else if(run<=2){
+          // very small holes from anti-alias / divider lines are ignored later
+        }
+      }
+
+      // fill count with tiny-gap closing
+      for(let i=segStart;i<=segEnd;i++){
+        if(support[i]){
+          filled++;
+          continue;
+        }
+        const left=(i>segStart&&support[i-1]);
+        const right=(i<segEnd&&support[i+1]);
+        if(left&&right)filled++;
+      }
+
+      let segVal=Math.round((filled/segLen)*5);
+      segVal=Math.max(0,Math.min(5,segVal));
+
+      // once a segment is not full, later segments should be empty in a valid IV bar
+      if(values.length&&values[values.length-1]<5)segVal=0;
+
+      values.push(segVal);
+    }
+
+    return values[0]+values[1]+values[2];
+  };
+
+  const vals=triple.map(r=>analyzeBar(r.y));
+  return vals.map(v=>Math.max(0,Math.min(15,v)));
 }
 
 function cpAt(p,a,d,h,cpm){
